@@ -1,0 +1,19 @@
+server:
+  port: 40300
+spring:
+  application:
+    name: lot-file-service
+  servlet:
+   multipart:
+    max-file-size: 50MB
+    max-request-size: 60MB
+data:
+  mongodb:
+   grid-fs-database: fileDB
+   authentication-database: biz
+   uri: mongodb://bizrw:878266@172.17.0.2:27017/biz?
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:50101/eureka/
