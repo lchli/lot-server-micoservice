@@ -17,4 +17,5 @@ public class PostEntity {//uid->role;role->permission
 
     public String title;
 
+
 }

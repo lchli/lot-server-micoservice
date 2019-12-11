@@ -27,6 +27,13 @@ public class UcenterController {
     }
 
 
+    @GetMapping("/getUserById")
+    public LotUser getUserById(@RequestParam("userId") String userId) {
+        return userService.getUserById(userId);
+    }
+
+
+
     @PostMapping(value = "/user",produces = {MediaType.APPLICATION_JSON_VALUE})
     public RegisterResponse register(@RequestParam("username") String username, @RequestParam("pwd") String pwd,
                             @RequestParam("headUrl") String headUrl) {

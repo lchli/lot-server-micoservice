@@ -4,6 +4,7 @@ import com.lch.lottery.auth.model.AuthToken;
 import com.lch.lottery.auth.model.JwtResult;
 import com.lch.lottery.auth.model.LoginRequest;
 import com.lch.lottery.auth.model.LoginResult;
+import com.lch.lottery.auth.response.LoginResponse;
 import com.lch.lottery.auth.service.AuthService;
 import com.lch.lottery.auth.util.CookieUtil;
 import com.lch.lottery.common.exception.ExceptionCast;
@@ -47,47 +48,57 @@ public class AuthController {
 
     @PostMapping(value = "/userlogin")
 
-    public LoginResult login(@RequestBody LoginRequest loginRequest) {
-        System.err.println("login:==============："+loginRequest);
+    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
+        System.err.println("login:==============：" + loginRequest);
+        LoginResponse response = new LoginResponse();
 
-        if(loginRequest == null || StringUtils.isEmpty(loginRequest.getUsername())){
-            ExceptionCast.cast(AuthCode.AUTH_USERNAME_NONE);
+        if (loginRequest == null || StringUtils.isEmpty(loginRequest.getUsername())) {
+            response.markErrorCode();
+            response.errmsg = "请输入账号！";
+            return response;
         }
-        if(loginRequest == null || StringUtils.isEmpty(loginRequest.getPassword())){
-            ExceptionCast.cast(AuthCode.AUTH_PASSWORD_NONE);
+
+        if (loginRequest == null || StringUtils.isEmpty(loginRequest.getPassword())) {
+            response.markErrorCode();
+            response.errmsg = "请输入密码！";
+            return response;
         }
         //账号
         String username = loginRequest.getUsername();
         //密码
         String password = loginRequest.getPassword();
-        String  password2=new BCryptPasswordEncoder().encode(password);
-        System.err.println("login:==============password2："+password2);
+        String password2 = new BCryptPasswordEncoder().encode(password);
+        System.err.println("login:==============password2：" + password2);
 
         //申请令牌
-        AuthToken authToken =  authService.login(username,password,clientId,clientSecret);
+        AuthToken authToken = authService.login(username, password, clientId, clientSecret);
 
         //用户身份令牌
         String access_token = authToken.getAccess_token();
         //将令牌存储到cookie
         this.saveCookie(access_token);//jwt不存储在cookie中是因为太长了。
 
-        return new LoginResult(CommonCode.SUCCESS,access_token);
+        response.userName = username;
+        response.token = access_token;
+
+        return response;
     }
 
     //将令牌存储到cookie
-    private void saveCookie(String token){
+    private void saveCookie(String token) {
 
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
         //HttpServletResponse response,String domain,String path, String name, String value, int maxAge,boolean httpOnly
-        CookieUtil.addCookie(response,cookieDomain,"/","uid",token,cookieMaxAge,false);
+        CookieUtil.addCookie(response, cookieDomain, "/", "uid", token, cookieMaxAge, false);
 
     }
+
     //从cookie删除token
-    private void clearCookie(String token){
+    private void clearCookie(String token) {
 
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
         //HttpServletResponse response,String domain,String path, String name, String value, int maxAge,boolean httpOnly
-        CookieUtil.addCookie(response,cookieDomain,"/","uid",token,0,false);
+        CookieUtil.addCookie(response, cookieDomain, "/", "uid", token, 0, false);
 
     }
 
@@ -107,25 +118,25 @@ public class AuthController {
     public JwtResult userjwt() {
         //取出cookie中的用户身份令牌
         String uid = getTokenFormCookie();
-        if(uid == null){
-            return new JwtResult(CommonCode.FAIL,null);
+        if (uid == null) {
+            return new JwtResult(CommonCode.FAIL, null);
         }
 
         //拿身份令牌从redis中查询jwt令牌
         AuthToken userToken = authService.getUserToken(uid);
-        if(userToken!=null){
+        if (userToken != null) {
             //将jwt令牌返回给用户
             String jwt_token = userToken.getJwt_token();
-            return new JwtResult(CommonCode.SUCCESS,jwt_token);
+            return new JwtResult(CommonCode.SUCCESS, jwt_token);
         }
         return null;
     }
 
     //取出cookie中的身份令牌
-    private String getTokenFormCookie(){
+    private String getTokenFormCookie() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Map<String, String> map = CookieUtil.readCookie(request, "uid");
-        if(map!=null && map.get("uid")!=null){
+        if (map != null && map.get("uid") != null) {
             String uid = map.get("uid");
             return uid;
         }

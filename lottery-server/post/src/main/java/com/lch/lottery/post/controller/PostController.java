@@ -1,8 +1,15 @@
 package com.lch.lottery.post.controller;
 
+import com.lch.lottery.common.reponse.LotteryBaseResponse;
 import com.lch.lottery.common.util.XcOauth2Util;
+import com.lch.lottery.post.dao.PostLikeRepository;
+import com.lch.lottery.post.dao.PostRepository;
 import com.lch.lottery.post.entity.PostEntity;
-import com.lch.lottery.post.service.PostService;
+import com.lch.lottery.post.entity.PostUserLikeEntity;
+import com.lch.lottery.post.mapper.Mappers;
+import com.lch.lottery.post.response.LikePostResponse;
+import com.lch.lottery.post.response.PostsResponse;
+import com.lch.lottery.post.response.SinglePostResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,41 +24,144 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/post")
 public class PostController {
+
     @Autowired
-    private PostService postService;
+    private PostLikeRepository postLikeRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private Mappers mappers;
 
     //当用户拥有course_teachplan_list权限时候方可访问此方法
     //@PreAuthorize("hasAuthority('hello2')")
     //@PreAuthorize("hasAuthority('hello')")//这个能访问。
     @PostMapping("/writePost")
-    public String writePost(@RequestParam("content") String content, @RequestParam("title") String title,HttpServletRequest request) {
+    public SinglePostResponse writePost(@RequestParam("content") String content, @RequestParam("title") String title, HttpServletRequest request) {
         // String aAuthorization = request.getHeader("Authorization");
+        SinglePostResponse response = new SinglePostResponse();
+
         XcOauth2Util xcOauth2Util = new XcOauth2Util();
         XcOauth2Util.UserJwt userJwt = xcOauth2Util.getUserJwtFromHeader(request);
+        if (userJwt == null) {
+            response.markErrorCode();
+            response.errmsg = "token无效";
+            return response;
+        }
 
-        PostEntity entity=new PostEntity();
-        entity.content=content;
-        entity.title=title;
-        entity.userId=userJwt.getId();
-        entity.postId= UUID.randomUUID().toString();
+        PostEntity model = new PostEntity();
+        model.content = content;
+        model.title = title;
+        model.userId = userJwt.getId();
+        model.postId = UUID.randomUUID().toString();
 
-        entity=postService.save(entity);
+        model = postRepository.save(model);
+        if (model == null) {
+            response.markErrorCode();
+            response.errmsg = "发帖失败";
+            return response;
+        }
 
-        return entity._id+"";
+        response.post = mappers.toPostModel(model);
+
+        return response;
     }
 
 
-    @GetMapping("/getPost")
-    public List<PostEntity> getPost() {
+    @PostMapping("/updatePost")
+    public SinglePostResponse updatePost(@RequestParam("content") String content, @RequestParam("title") String title, @RequestParam(value = "postId") String postId, HttpServletRequest request) {
+        // String aAuthorization = request.getHeader("Authorization");
+        SinglePostResponse response = new SinglePostResponse();
 
-        return postService.findAll();
+        XcOauth2Util xcOauth2Util = new XcOauth2Util();
+        XcOauth2Util.UserJwt userJwt = xcOauth2Util.getUserJwtFromHeader(request);
+        if (userJwt == null) {
+            response.markErrorCode();
+            response.errmsg = "token无效";
+            return response;
+        }
+        PostEntity old = postRepository.findByPostId(postId);
+        if (old == null) {
+            response.markErrorCode();
+            response.errmsg = "帖子不存在";
+            return response;
+        }
+
+        old.content = content;
+        old.title = title;
+
+
+        old = postRepository.save(old);
+        if (old == null) {
+            response.markErrorCode();
+            response.errmsg = "发帖失败";
+            return response;
+        }
+
+        response.post = mappers.toPostModel(old);
+
+        return response;
+    }
+
+
+    @PostMapping("/likePost")
+    public LikePostResponse likePost(@RequestParam(value = "postId") String postId, HttpServletRequest request) {
+        // String aAuthorization = request.getHeader("Authorization");
+        LikePostResponse response = new LikePostResponse();
+
+        XcOauth2Util xcOauth2Util = new XcOauth2Util();
+        XcOauth2Util.UserJwt userJwt = xcOauth2Util.getUserJwtFromHeader(request);
+        if (userJwt == null) {
+            response.markErrorCode();
+            response.errmsg = "token无效";
+            return response;
+        }
+
+        PostUserLikeEntity entity = postLikeRepository.findByUserIdAndPostId(userJwt.getId(), postId);
+        if (entity != null) {
+            postLikeRepository.delete(entity);
+
+            List<PostUserLikeEntity> likes = postLikeRepository.findByPostId(postId);
+            response.postLikeCount = likes != null ? likes.size() : 0;
+
+            return response;
+        }
+
+        entity = new PostUserLikeEntity();
+        entity.userId = userJwt.getId();
+        entity.postId = postId;
+
+        entity = postLikeRepository.save(entity);
+        if (entity == null) {
+            response.markErrorCode();
+            response.errmsg = "操作失败";
+            return response;
+        }
+
+        List<PostUserLikeEntity> likes = postLikeRepository.findByPostId(postId);
+        response.postLikeCount = likes != null ? likes.size() : 0;
+
+        return response;
+    }
+
+
+    @GetMapping("/getPosts")
+    public PostsResponse getPosts() {
+        PostsResponse response = new PostsResponse();
+        response.posts = mappers.toPostModels(postRepository.findAll());
+
+        return response;
     }
 
 
     @GetMapping("/getPostById")
-    public PostEntity getPostById(@RequestParam("postId") String postId) {
+    public SinglePostResponse getPostById(@RequestParam("postId") String postId) {
+        SinglePostResponse response = new SinglePostResponse();
+        response.post = mappers.toPostModel(postRepository.findByPostId(postId));
 
-        return postService.findByPostId(postId);
+        return response;
+
     }
 
 }

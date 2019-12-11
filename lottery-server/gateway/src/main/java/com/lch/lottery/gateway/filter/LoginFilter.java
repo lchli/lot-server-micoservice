@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** 身份校验过虑器
+/**
+ * 身份校验过虑器
+ *
  * @author Administrator
  * @version 1.0
  **/
@@ -53,11 +55,12 @@ public class LoginFilter extends ZuulFilter {
         RequestContext requestContext = RequestContext.getCurrentContext();
         //得到request
         HttpServletRequest request = requestContext.getRequest();
-        String uri=request.getRequestURI();
-        System.out.println("uri:"+uri);
-        if(uri.contains("/api/file")||uri.contains("/api/ucenter")||
-                uri.contains("/api/auth/userlogin"))
+        String uri = request.getRequestURI();
+        System.out.println("uri:" + uri);
+        if (uri.contains("/api/file") || uri.contains("/api/ucenter") ||
+                uri.contains("/api/auth/userlogin")|| uri.contains("/api/post/getPosts")|| uri.contains("/api/post/getPostById")) {
             return false;
+        }
         return true;
     }
 
@@ -72,40 +75,40 @@ public class LoginFilter extends ZuulFilter {
         HttpServletResponse response = requestContext.getResponse();
         //取cookie中的身份令牌
         String tokenFromCookie = authService.getTokenFromCookie(request);
-        System.err.println("tokenFromCookie:"+tokenFromCookie);
+        System.err.println("tokenFromCookie:" + tokenFromCookie);
 
-        if(StringUtils.isEmpty(tokenFromCookie)){
+        if (StringUtils.isEmpty(tokenFromCookie)) {
             //拒绝访问
             access_denied();
             return null;
         }
         //从header中取jwt
-       // String jwtFromHeader = authService.getJwtFromHeader(request);
+        // String jwtFromHeader = authService.getJwtFromHeader(request);
         String jwtFromHeader = authService.getJwtFromRedis(tokenFromCookie);
 
-        System.err.println("jwtFromHeader:"+jwtFromHeader);
+        System.err.println("jwtFromHeader:" + jwtFromHeader);
 
-        if(StringUtils.isEmpty(jwtFromHeader)){
+        if (StringUtils.isEmpty(jwtFromHeader)) {
             //拒绝访问
             access_denied();
             return null;
         }
         //从redis取出jwt的过期时间
         long expire = authService.getExpire(tokenFromCookie);
-        if(expire<0){
+        if (expire < 0) {
             //拒绝访问
             access_denied();
             return null;
         }
 
-        requestContext.addZuulRequestHeader("Authorization","Bearer "+jwtFromHeader);
+        requestContext.addZuulRequestHeader("Authorization", "Bearer " + jwtFromHeader);
 
         return null;
     }
 
 
     //拒绝访问
-    private void access_denied(){
+    private void access_denied() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         //得到response
         HttpServletResponse response = requestContext.getResponse();
