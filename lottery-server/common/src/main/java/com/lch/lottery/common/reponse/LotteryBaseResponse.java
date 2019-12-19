@@ -1,6 +1,6 @@
 package com.lch.lottery.common.reponse;
 
-public class LotteryBaseResponse<T> {
+public class LotteryBaseResponse {
     public static final String CODE_SUCCESS = "1";
     public static final String CODE_ERROR = "-1";
 

@@ -34,7 +34,7 @@ public class UcenterController {
 
 
 
-    @PostMapping(value = "/user",produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/register",produces = {MediaType.APPLICATION_JSON_VALUE})
     public RegisterResponse register(@RequestParam("username") String username, @RequestParam("pwd") String pwd,
                             @RequestParam("headUrl") String headUrl) {
         UserEntity userEntity = new UserEntity();
