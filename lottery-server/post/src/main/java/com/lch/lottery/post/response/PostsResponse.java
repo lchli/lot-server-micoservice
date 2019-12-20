@@ -5,7 +5,7 @@ import com.lch.lottery.post.model.PostModel;
 
 import java.util.List;
 
-public class PostsResponse extends LotteryBaseResponse<PostsResponse>{
+public class PostsResponse extends LotteryBaseResponse{
 
     public List<PostModel> posts;
 

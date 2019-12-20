@@ -10,7 +10,7 @@ public class SearchPostResponse extends LotteryBaseResponse {
 
     public static class Item {
 
-        public String postTitle;
+        public String title;
         public String postId;
 
     }

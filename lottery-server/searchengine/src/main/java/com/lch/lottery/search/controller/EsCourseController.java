@@ -63,8 +63,8 @@ public class EsCourseController {
     PostService postService;
 
 
-    @GetMapping(value = "/list/{page}/{size}")
-    public SearchPostResponse searchPost(@PathVariable("page") int page, @PathVariable("size") int size, SearchParam courseSearchParam) {
+    @GetMapping(value = "/list")
+    public SearchPostResponse searchPost(@RequestParam("page") int page, @RequestParam("size") int size, SearchParam courseSearchParam) {
         if (courseSearchParam == null) {
             courseSearchParam = new SearchParam();
         }
@@ -146,7 +146,7 @@ public class EsCourseController {
                     }
 
                 }
-                coursePub.postTitle = name;
+                coursePub.title = name;
 
                 //将coursePub对象放入list
                 list.add(coursePub);
