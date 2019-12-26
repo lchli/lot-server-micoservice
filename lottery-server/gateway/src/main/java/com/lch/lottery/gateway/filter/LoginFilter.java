@@ -57,8 +57,12 @@ public class LoginFilter extends ZuulFilter {
         HttpServletRequest request = requestContext.getRequest();
         String uri = request.getRequestURI();
         System.out.println("uri:" + uri);
-        if (uri.contains("/api/file") || uri.contains("/api/ucenter") ||
-                uri.contains("/api/auth/userlogin")|| uri.contains("/api/post/getPosts")|| uri.contains("/api/post/getPostById")) {
+        if (uri.contains("/api/file") ||
+                uri.contains("/api/ucenter") ||
+                uri.contains("/api/auth/userlogin")||
+                uri.contains("/api/post/getPosts")||
+                uri.contains("/api/search")||
+                uri.contains("/api/post/getPostById")) {
             return false;
         }
         return true;

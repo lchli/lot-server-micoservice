@@ -51,6 +51,11 @@ zuul:
           serviceId: lot-service-post
           sensitiveHeaders:
           strip-prefix: false
+    lot-service-search:
+              path: /search/**
+              serviceId: lot-service-search
+              sensitiveHeaders:
+              strip-prefix: false
 
 eureka:
   client:

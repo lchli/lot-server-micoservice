@@ -1,7 +1,9 @@
 package com.lch.lottery.search.controller;
 
 
+import com.lch.lottery.common.model.LotUser;
 import com.lch.lottery.common.reponse.LotteryBaseResponse;
+import com.lch.lottery.search.client.UserClient;
 import com.lch.lottery.search.model.SearchParam;
 import com.lch.lottery.search.response.SearchPostResponse;
 import com.lch.lottery.search.service.PostService;
@@ -61,13 +63,14 @@ public class EsCourseController {
     RestHighLevelClient restHighLevelClient;
     @Autowired
     PostService postService;
+    @Autowired
+    UserClient userClient;
 
 
     @GetMapping(value = "/list")
-    public SearchPostResponse searchPost(@RequestParam("page") int page, @RequestParam("size") int size, SearchParam courseSearchParam) {
-        if (courseSearchParam == null) {
-            courseSearchParam = new SearchParam();
-        }
+    public SearchPostResponse searchPost(@RequestParam("page") int page, @RequestParam("size") int size,
+                                         @RequestParam("keyword") String keyword, @RequestParam("sort") String sort) {
+      System.err.println("keyword:"+keyword);
         //创建搜索请求对象
         SearchRequest searchRequest = new SearchRequest(index);
         //设置搜索类型
@@ -81,10 +84,11 @@ public class EsCourseController {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         //搜索条件
         //根据关键字搜索
-        if (StringUtils.isNotEmpty(courseSearchParam.keyword)) {
-            MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(courseSearchParam.keyword, "title", "content")
+        if (StringUtils.isNotEmpty(keyword)) {
+            MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "content")
                     .minimumShouldMatch("70%")
                     .field("title", 10);
+
             boolQueryBuilder.must(multiMatchQueryBuilder);
         }
 
@@ -128,8 +132,15 @@ public class EsCourseController {
                 //源文档
                 Map<String, Object> sourceAsMap = hit.getSourceAsMap();
                 //取出id
-                String id = (String) sourceAsMap.get("id");
+                String id = (String) sourceAsMap.get("postId");
+                String userId = (String) sourceAsMap.get("userId");
                 coursePub.postId = id;
+                coursePub.userId = userId;
+
+                LotUser user = userClient.getUserById(userId);
+                if(user!=null){
+                    coursePub.userName=user.getUsername();
+                }
                 //取出name
                 String name = (String) sourceAsMap.get("title");
                 //取出高亮字段name

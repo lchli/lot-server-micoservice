@@ -24,7 +24,11 @@
             <groupId>com.lch.lottery</groupId>
             <artifactId>common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <!--<scope>system</scope>-->
+            <!--<systemPath>${project.basedir}/libs/common.jar</systemPath>-->
         </dependency>
+
+
 
         <!-- 导入Eureka客户端的依赖 -->
         <dependency>
@@ -108,7 +112,24 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+
         </plugins>
     </build>
+
+
+    <repositories>
+
+
+    <repository>
+        <id>local-repos</id>
+        <name>local</name>
+        <url>~/.m2/repository/</url>
+    </repository>
+
+
+
+
+    </repositories>
 
 </project>

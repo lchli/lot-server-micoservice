@@ -8,7 +8,7 @@ spring:
     name: lot-service-post
   datasource:
     druid:
-      url: jdbc:mysql://localhost:3307/lot_user?characterEncoding=utf-8
+      url: jdbc:mysql://192.168.10.104:3307/lot_user?characterEncoding=utf-8
       username: root
       password: 878266
       driverClassName: com.mysql.jdbc.Driver

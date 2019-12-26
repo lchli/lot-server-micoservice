@@ -12,6 +12,8 @@ public class SearchPostResponse extends LotteryBaseResponse {
 
         public String title;
         public String postId;
+        public String userId;
+        public String userName;
 
     }
 
